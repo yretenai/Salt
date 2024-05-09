@@ -61,9 +61,7 @@ public class FEVReader(ReadOnlyMemory<byte> Buffer) {
 		return new FEVReader(slice);
 	}
 
-	public FEVReader Slice() {
-		return new FEVReader(Read(Read<ushort>()));
-	}
+	public FEVReader Slice() => new(Read(Read<ushort>()));
 
 	public int ReadSize() {
 		var length = (int) Read<ushort>();

@@ -58,6 +58,8 @@ public record StringDataChunk : BaseChunk {
 	private Dictionary<Guid, string>? Dictionary { get; set; }
 	private Dictionary<string, Guid>? ReverseDictionary { get; set; }
 
+	public override bool IsFunctionallyEmpty => base.IsFunctionallyEmpty || Guids.Length == 0;
+
 
 	public ReadOnlyDictionary<Guid, string> ToDictionary() {
 		if (Guids.Length == 0) {
@@ -107,6 +109,5 @@ public record StringDataChunk : BaseChunk {
 		return ReverseDictionary.AsReadOnly();
 	}
 
-	public override bool IsFunctionallyEmpty => base.IsFunctionallyEmpty || Guids.Length == 0;
 	public override string ToString() => $"{nameof(StringDataChunk)} {{ Count = {Guids.Length} }}";
 }

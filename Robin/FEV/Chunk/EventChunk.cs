@@ -21,8 +21,8 @@ public record EventChunk : BaseChunk, IRefOwner {
 
 	public EventBodyChunk EventBody { get; }
 	public BaseChunk? Properties { get; }
-
-	public override string ToString() => $"{nameof(EventChunk)} {{ Body = {EventBody}, Properties = {Properties} }}";
 	public static ReadOnlySpan<ChunkId> ListTypes => [ChunkId.EVTS, ChunkId.EVNT, ChunkId.EVTB];
 	public Guid Id => EventBody.Id;
+
+	public override string ToString() => $"{nameof(EventChunk)} {{ Body = {EventBody}, Properties = {Properties} }}";
 }

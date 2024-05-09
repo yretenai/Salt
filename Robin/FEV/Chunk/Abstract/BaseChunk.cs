@@ -5,6 +5,9 @@ using Robin.FEV.Models;
 namespace Robin.FEV.Chunk.Abstract;
 
 public abstract record BaseChunk(RIFFAtom Atom, FEVSoundBank Bank) {
+	public virtual ChunkId ChunkId => Atom.Id;
+	public virtual bool IsFunctionallyEmpty => Atom.Length == 0;
+
 	protected static BaseChunk ReadChunk(FEVReader reader, FEVSoundBank soundBank) {
 		var atom = reader.Read<RIFFAtom>();
 		var slice = reader.Slice(atom.Length, 2);
@@ -69,7 +72,4 @@ public abstract record BaseChunk(RIFFAtom Atom, FEVSoundBank Bank) {
 				return new DummyChunk(reader, atom, soundBank);
 		}
 	}
-
-	public virtual ChunkId ChunkId => Atom.Id;
-	public virtual bool IsFunctionallyEmpty => Atom.Length == 0;
 }

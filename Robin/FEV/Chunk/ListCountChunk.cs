@@ -17,5 +17,5 @@ public sealed record ListCountChunk : BaseChunk {
 
 	public int Count { get; }
 
-	public override string ToString() =>  $"{nameof(ListCountChunk)} {{ {Count} }}";
+	public override string ToString() => $"{nameof(ListCountChunk)} {{ {Count} }}";
 }

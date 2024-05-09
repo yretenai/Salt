@@ -16,5 +16,5 @@ public record HashChunk : BaseChunk {
 
 	public Dictionary<Guid, uint> HashTable { get; } = [];
 
-	public override string ToString() =>  $"{nameof(HashChunk)} {{ Count = {HashTable.Count} }}";
+	public override string ToString() => $"{nameof(HashChunk)} {{ Count = {HashTable.Count} }}";
 }
