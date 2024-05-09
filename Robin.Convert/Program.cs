@@ -1,2 +1,9 @@
-// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+using Robin.FEV;
+
+namespace Robin.Convert;
+
+internal class Program {
+	private static void Main(string[] args) {
+		FEVSoundBank.TryLoadBank(args[0], null, out var fevSoundBank);
+	}
+}
