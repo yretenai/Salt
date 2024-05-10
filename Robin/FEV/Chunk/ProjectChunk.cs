@@ -3,7 +3,7 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk;
 
-public sealed record ProjectChunk : BaseChunk {
+public sealed record ProjectChunk : BaseChunk, IAddressable {
 	public ProjectChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(atom, soundBank) {
 		ArgumentOutOfRangeException.ThrowIfNotEqual((int) Atom.Id, (int) ChunkId.PROJ, nameof(Atom));
 
@@ -21,5 +21,6 @@ public sealed record ProjectChunk : BaseChunk {
 	}
 
 	public List<BaseChunk> Chunks { get; } = [];
+	public static ReadOnlySpan<ChunkId> ListTypes => [ChunkId.PROJ];
 	public override string ToString() => $"{nameof(ProjectChunk)} {{ Count = {Chunks.Count} }}";
 }

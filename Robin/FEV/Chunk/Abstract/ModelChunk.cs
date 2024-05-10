@@ -2,7 +2,7 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk.Abstract;
 
-public abstract record ModelChunk : BaseChunk {
+public abstract record ModelChunk : BaseChunk, IHasId {
 	protected ModelChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(atom, soundBank) {
 		if (reader.Length < 16) {
 			return;

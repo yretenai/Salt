@@ -30,17 +30,13 @@ public sealed class FEVSoundBank {
 
 		Format = format;
 
-		if (!BaseChunk.TryReadChunk<ListChunk>(reader, this, out var list)) {
-			throw new InvalidDataException("missing LIST chunk");
-		}
-
-		if (list.ChunkId != ChunkId.PROJ || list.Body is not ProjectChunk projectChunk) {
+		if (!BaseChunk.TryReadChunk<ProjectChunk>(reader, this, out var projectChunk)) {
 			throw new InvalidDataException("missing PROJ chunk");
 		}
 
 		Chunks = projectChunk.Chunks;
 
-		if (TryGetChunk<SoundHeaderChunk>(ChunkId.SNDH, out var soundHeaderChunk)) {
+		if (TryGetChunk<SoundHeaderChunk>(out var soundHeaderChunk)) {
 			var atom = reader.Peek<RIFFAtom>();
 			if (atom is { Id: ChunkId.SND, Length: > 0 }) {
 				EmbeddedSoundBanks = new SoundChunk(block, soundHeaderChunk, shift, atom, this);
@@ -51,7 +47,7 @@ public sealed class FEVSoundBank {
 	public FormatChunk Format { get; }
 	public List<BaseChunk> Chunks { get; }
 	public SoundChunk? EmbeddedSoundBanks { get; }
-	public FEVSoundBank? Owner { get; set; }
+	public FEVSoundBank? Master { get; set; }
 	public FEVSoundBank? Strings { get; set; }
 	public FEVSoundBank? Assets { get; set; }
 
@@ -63,24 +59,20 @@ public sealed class FEVSoundBank {
 
 		using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
 			soundBank = new FEVSoundBank(stream) {
-				Owner = owner,
+				Master = owner,
 			};
 		}
 
 		var stringsPath = Path.ChangeExtension(path, ".strings.bank");
 		if (File.Exists(stringsPath)) {
 			using var stream = new FileStream(stringsPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-			soundBank.Strings = new FEVSoundBank(stream) {
-				Owner = soundBank,
-			};
+			soundBank.Strings = new FEVSoundBank(stream);
 		}
 
 		var assetsPath = Path.ChangeExtension(path, ".assets.bank");
 		if (File.Exists(assetsPath)) {
 			using var stream = new FileStream(assetsPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-			soundBank.Assets = new FEVSoundBank(stream) {
-				Owner = soundBank,
-			};
+			soundBank.Assets = new FEVSoundBank(stream);
 		}
 
 		return true;
@@ -108,34 +100,27 @@ public sealed class FEVSoundBank {
 		return false;
 	}
 
-	public bool TryGetChunk<T>(ChunkId chunkId, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk {
-		if (InnerTryGetChunk(chunkId, out chunk)) {
-			return true;
-		}
+	public bool TryGetChunk<T>([MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IAddressable => TryGetChunk(T.ListTypes, out chunk);
 
-		if (Assets != null && Assets.InnerTryGetChunk(chunkId, out chunk)) {
-			return true;
-		}
-
-		if (Strings != null && Strings.InnerTryGetChunk(chunkId, out chunk)) {
-			return true;
-		}
-
-		if (Owner != null && Owner.TryGetChunk(chunkId, out chunk)) {
-			return true;
+	public bool TryGetChunk<T>(Guid Id, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IHasId, IAddressable {
+		if (TryGetChunks<T>(out var chunks)) {
+			chunk = chunks.FirstOrDefault(x => x.Id == Id);
+			return chunk != null;
 		}
 
 		chunk = null;
 		return false;
 	}
 
-	public bool TryGetChunks<T>(ChunkId chunkId, [MaybeNullWhen(false)] out List<T> chunks) where T : BaseChunk {
-		if (TryGetChunk<ListChunk>(chunkId, out var listChunk)) {
+	public bool TryGetChunk<T>(GuidRef<T> Id, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IHasId, IAddressable => TryGetChunk(Id.Id, out chunk);
+
+	public bool TryGetChunks<T>([MaybeNullWhen(false)] out List<T> chunks) where T : BaseChunk, IAddressable {
+		if (TryGetChunk<ListChunk>(T.ListTypes, out var listChunk)) {
 			chunks = listChunk.Chunks.OfType<T>().ToList();
 			return true;
 		}
 
-		if (TryGetChunk<T>(chunkId, out var chunk)) {
+		if (TryGetChunk<T>(out var chunk)) {
 			chunks = [chunk];
 			return true;
 		}
@@ -144,8 +129,31 @@ public sealed class FEVSoundBank {
 		return false;
 	}
 
+	private bool TryGetChunk<T>(ReadOnlySpan<ChunkId> listTypes, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk {
+		foreach (var chunkId in listTypes) {
+			if (InnerTryGetChunk(chunkId, out chunk)) {
+				return true;
+			}
+
+			if (Assets != null && Assets.InnerTryGetChunk(chunkId, out chunk)) {
+				return true;
+			}
+
+			if (Strings != null && Strings.InnerTryGetChunk(chunkId, out chunk)) {
+				return true;
+			}
+
+			if (Master != null && Master.InnerTryGetChunk(chunkId, out chunk)) {
+				return true;
+			}
+		}
+
+		chunk = null;
+		return false;
+	}
+
 	public bool LookupGuid(string path, out Guid guid) {
-		if (TryGetChunk<StringDataChunk>(ChunkId.STDT, out var stdt) && stdt.ToReverseDictionary().TryGetValue(path, out guid)) {
+		if (TryGetChunk<StringDataChunk>(out var stdt) && stdt.ToReverseDictionary().TryGetValue(path, out guid)) {
 			return true;
 		}
 
@@ -153,16 +161,12 @@ public sealed class FEVSoundBank {
 			return Strings.LookupGuid(path, out guid);
 		}
 
-		if (Owner != null) {
-			return Owner.LookupGuid(path, out guid);
-		}
-
 		guid = default;
 		return false;
 	}
 
 	public string DumpGUIDs() {
-		if (!TryGetChunk<StringDataChunk>(ChunkId.STDT, out var stdt) || stdt.IsFunctionallyEmpty) {
+		if (!TryGetChunk<StringDataChunk>(out var stdt) || stdt.IsFunctionallyEmpty) {
 			return string.Empty;
 		}
 

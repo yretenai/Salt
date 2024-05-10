@@ -3,7 +3,7 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk;
 
-public record EventBodyChunk : ModelChunk {
+public record EventBodyChunk : ModelChunk, IAddressable {
 	public EventBodyChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(reader, atom, soundBank) {
 		ArgumentOutOfRangeException.ThrowIfNotEqual((int) Atom.Id, (int) ChunkId.EVTB, nameof(Atom));
 
@@ -12,7 +12,7 @@ public record EventBodyChunk : ModelChunk {
 		}
 
 		SnapshotId = reader.Read<Guid>();
-		Timeline = reader.Read<Guid>();
+		Timeline = reader.Read<GuidRef<TimelineChunk>>();
 		InputBus = reader.Read<Guid>();
 		MasterTrack = reader.Read<Guid>();
 
@@ -27,14 +27,14 @@ public record EventBodyChunk : ModelChunk {
 			reader.SkipElementArray(); // doesn't exist anymore??
 		}
 
-		var (userFloatPropertyCount, _) = reader.ReadElementSize();
+		var userFloatPropertyCount = reader.ReadSize();
 		if (userFloatPropertyCount > 0) {
 			for (var i = 0; i < userFloatPropertyCount; ++i) {
 				UserFloatProperties[reader.ReadString()] = reader.Read<float>();
 			}
 		}
 
-		var (userStringPropertyCount, _) = reader.ReadElementSize();
+		var userStringPropertyCount = reader.ReadSize();
 		if (userStringPropertyCount > 0) {
 			for (var i = 0; i < userStringPropertyCount; ++i) {
 				UserStringProperties[reader.ReadString()] = reader.ReadString();
@@ -92,7 +92,7 @@ public record EventBodyChunk : ModelChunk {
 	}
 
 	public Guid SnapshotId { get; }
-	public Guid Timeline { get; }
+	public GuidRef<TimelineChunk> Timeline { get; }
 	public Guid InputBus { get; }
 	public Guid MasterTrack { get; }
 	public int MaximumPolyphony { get; }
@@ -110,4 +110,5 @@ public record EventBodyChunk : ModelChunk {
 	public Memory<Guid> NonMasterTracks { get; }
 	public Memory<ulong> ParameterIds { get; }
 	public Memory<Guid> EventTriggeredInstruments { get; }
+	public static ReadOnlySpan<ChunkId> ListTypes => [ChunkId.EVTS, ChunkId.EVNT, ChunkId.EVTB];
 }

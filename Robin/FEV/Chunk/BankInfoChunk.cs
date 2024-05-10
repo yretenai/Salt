@@ -3,15 +3,9 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk;
 
-public record BankInfoChunk : BaseChunk {
-	public BankInfoChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(atom, soundBank) {
+public record BankInfoChunk : ModelChunk, IAddressable {
+	public BankInfoChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(reader, atom, soundBank) {
 		ArgumentOutOfRangeException.ThrowIfNotEqual((int) Atom.Id, (int) ChunkId.BNKI, nameof(Atom));
-
-		if (reader.Length < 16) {
-			return;
-		}
-
-		Id = reader.Read<Guid>();
 
 		if (soundBank.Format.FileVersion < 55) {
 			return;
@@ -32,8 +26,8 @@ public record BankInfoChunk : BaseChunk {
 		ExportFlags = reader.Read<uint>();
 	}
 
-	public Guid Id { get; }
 	public ulong Hash { get; }
 	public uint TopLevelEventCount { get; }
 	public uint ExportFlags { get; }
+	public static ReadOnlySpan<ChunkId> ListTypes => [ChunkId.BNKI];
 }

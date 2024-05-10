@@ -73,30 +73,32 @@ public class FEVReader(ReadOnlyMemory<byte> Buffer) {
 	}
 
 	public ReadOnlySpan<T> ReadElementArray<T>() where T : struct {
-		var (elementCount, elementSize) = ReadElementSize();
-		if (elementCount == 0) {
+		var elementCount = ReadSize();
+		if (elementCount is 0 or 1) {
 			return ReadOnlySpan<T>.Empty;
 		}
 
+		var isUniform = (elementCount & 1) == 1;
+		Debug.Assert(isUniform, "isUniform");
+
+		var elementSize = Read<ushort>();
 		Debug.Assert(elementSize == Unsafe.SizeOf<T>(), "elementSize == sizeof(T)");
 
-		var slice = Read(elementSize * elementCount);
+		var slice = Read(elementSize * (elementCount >> 1));
 		return MemoryMarshal.Cast<byte, T>(slice.Span);
 	}
 
-	public (int Size, int ElementSize) ReadElementSize() {
-		var size = ReadSize() >> 1;
-		var elementSize = 0;
-		if (size > 0) {
-			elementSize = Read<ushort>();
-		}
-
-		return (size, elementSize);
-	}
-
 	public void SkipElementArray() {
-		var (dummyCount, dummySize) = ReadElementSize();
-		Position += dummySize * dummyCount;
+		var count = ReadSize();
+		var isUniform = (count & 1) == 1;
+		if (isUniform) {
+			Position += count * Read<ushort>();
+		} else {
+			for (var i = 0; i < count; ++i) {
+				var size = Read<ushort>();
+				Position += size;
+			}
+		}
 
 		if (Position > Length) {
 			Position = Length;
@@ -105,6 +107,6 @@ public class FEVReader(ReadOnlyMemory<byte> Buffer) {
 
 	public string ReadString() {
 		var length = ReadSize();
-		return length is 0 or 1 ? string.Empty : Encoding.UTF8.GetString(Read(length - 1).Span);
+		return length is 0 ? string.Empty : Encoding.UTF8.GetString(Read(length).Span);
 	}
 }

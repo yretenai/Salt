@@ -32,8 +32,6 @@ public sealed record ListChunk : BaseChunk {
 				Id = ListId,
 				Length = Atom.Length - 4,
 			}, soundBank);
-
-			Chunks.Add(Body);
 		}
 	}
 
@@ -48,7 +46,7 @@ public sealed record ListChunk : BaseChunk {
 
 	public override string ToString() => $"{nameof(ListChunk)} {{ Type = {ListId:G}, Count = {Chunks.Count}, First = {Body ?? Chunks.FirstOrDefault()} }}";
 
-	public bool TryGetChunk<T>(Guid id, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IRefOwner {
+	public bool TryGetChunk<T>(Guid id, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IHasId {
 		chunk = Chunks.OfType<T>().FirstOrDefault(x => x.Id == id);
 		return chunk != null;
 	}

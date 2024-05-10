@@ -5,7 +5,7 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk;
 
-public record StringDataChunk : BaseChunk {
+public record StringDataChunk : BaseChunk, IAddressable {
 	public StringDataChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(atom, soundBank) {
 		ArgumentOutOfRangeException.ThrowIfNotEqual((int) Atom.Id, (int) ChunkId.STDT, nameof(Atom));
 
@@ -59,6 +59,8 @@ public record StringDataChunk : BaseChunk {
 	private Dictionary<string, Guid>? ReverseDictionary { get; set; }
 
 	public override bool IsFunctionallyEmpty => base.IsFunctionallyEmpty || Guids.Length == 0;
+
+	public static ReadOnlySpan<ChunkId> ListTypes => [ChunkId.STDT];
 
 
 	public ReadOnlyDictionary<Guid, string> ToDictionary() {

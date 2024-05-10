@@ -48,7 +48,8 @@ public abstract record BaseChunk(RIFFAtom Atom, FEVSoundBank Bank) {
 				return new HashChunk(reader, atom, soundBank);
 			}
 			case ChunkId.LIST: {
-				return new ListChunk(reader, atom, soundBank);
+				var list = new ListChunk(reader, atom, soundBank);
+				return list.Body ?? list;
 			}
 			case ChunkId.LCNT: {
 				return new ListCountChunk(reader, atom, soundBank);
@@ -64,6 +65,12 @@ public abstract record BaseChunk(RIFFAtom Atom, FEVSoundBank Bank) {
 			}
 			case ChunkId.STDT: {
 				return new StringDataChunk(reader, atom, soundBank);
+			}
+			case ChunkId.TMLN: {
+				return new TimelineChunk(reader, atom, soundBank);
+			}
+			case ChunkId.TLNB: {
+				return new TimelineBodyChunk(reader, atom, soundBank);
 			}
 			case ChunkId.WAV: {
 				return new WaveformResourceChunk(reader, atom, soundBank);
