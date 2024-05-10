@@ -3,7 +3,7 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk;
 
-public record SoundChunk : BaseChunk, IAddressable {
+public sealed record SoundChunk : BaseChunk, IAddressable {
 	public SoundChunk(ReadOnlyMemory<byte> buffer, SoundHeaderChunk headerChunk, int shift, RIFFAtom atom, FEVSoundBank soundBank) : base(atom, soundBank) {
 		ArgumentOutOfRangeException.ThrowIfNotEqual((int) Atom.Id, (int) ChunkId.SND, nameof(Atom));
 

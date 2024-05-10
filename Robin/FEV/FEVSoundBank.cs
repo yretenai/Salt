@@ -9,7 +9,7 @@ using Robin.FEV.Models;
 namespace Robin.FEV;
 
 public sealed class FEVSoundBank {
-	public FEVSoundBank(Stream stream) {
+	public FEVSoundBank(Stream stream, FEVSoundBank? masterBank = null) {
 		var header = new RIFFAtom();
 		stream.ReadExactly(new Span<RIFFAtom>(ref header).AsBytes());
 		ArgumentOutOfRangeException.ThrowIfNotEqual((uint) header.Id, (uint) ChunkId.RIFF, nameof(header));
@@ -42,14 +42,20 @@ public sealed class FEVSoundBank {
 				EmbeddedSoundBanks = new SoundChunk(block, soundHeaderChunk, shift, atom, this);
 			}
 		}
+
+		Master = masterBank;
+		if (TryGetChunk<PlatformChunk>(out var platformChunk)) {
+			Id = platformChunk.Id;
+		}
 	}
 
 	public FormatChunk Format { get; }
 	public List<BaseChunk> Chunks { get; }
 	public SoundChunk? EmbeddedSoundBanks { get; }
-	public FEVSoundBank? Master { get; set; }
+	public FEVSoundBank? Master { get; }
 	public FEVSoundBank? Strings { get; set; }
 	public FEVSoundBank? Assets { get; set; }
+	public Guid Id { get; }
 
 	public static bool TryLoadBank(string path, FEVSoundBank? owner, [MaybeNullWhen(false)] out FEVSoundBank soundBank) {
 		soundBank = null;
@@ -58,9 +64,7 @@ public sealed class FEVSoundBank {
 		}
 
 		using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
-			soundBank = new FEVSoundBank(stream) {
-				Master = owner,
-			};
+			soundBank = new FEVSoundBank(stream, owner);
 		}
 
 		var stringsPath = Path.ChangeExtension(path, ".strings.bank");
@@ -102,9 +106,9 @@ public sealed class FEVSoundBank {
 
 	public bool TryGetChunk<T>([MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IAddressable => TryGetChunk(T.ListTypes, out chunk);
 
-	public bool TryGetChunk<T>(Guid Id, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IHasId, IAddressable {
+	public bool TryGetChunk<T>(Guid id, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IHasId, IAddressable {
 		if (TryGetChunks<T>(out var chunks)) {
-			chunk = chunks.FirstOrDefault(x => x.Id == Id);
+			chunk = chunks.FirstOrDefault(x => x.Id == id);
 			return chunk != null;
 		}
 
@@ -112,7 +116,7 @@ public sealed class FEVSoundBank {
 		return false;
 	}
 
-	public bool TryGetChunk<T>(GuidRef<T> Id, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IHasId, IAddressable => TryGetChunk(Id.Id, out chunk);
+	public bool TryGetChunk<T>(GuidRef<T> id, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IHasId, IAddressable => TryGetChunk(id.Id, out chunk);
 
 	public bool TryGetChunks<T>([MaybeNullWhen(false)] out List<T> chunks) where T : BaseChunk, IAddressable {
 		if (TryGetChunk<ListChunk>(T.ListTypes, out var listChunk)) {
@@ -142,10 +146,10 @@ public sealed class FEVSoundBank {
 			if (Strings != null && Strings.InnerTryGetChunk(chunkId, out chunk)) {
 				return true;
 			}
+		}
 
-			if (Master != null && Master.InnerTryGetChunk(chunkId, out chunk)) {
-				return true;
-			}
+		if (Master != null && Master.TryGetChunk(listTypes, out chunk)) {
+			return true;
 		}
 
 		chunk = null;
@@ -157,12 +161,16 @@ public sealed class FEVSoundBank {
 			return true;
 		}
 
-		if (Strings != null) {
-			return Strings.LookupGuid(path, out guid);
-		}
-
 		guid = default;
 		return false;
+	}
+
+	public string GetGuidString(Guid guid) {
+		if (!TryGetChunk<StringDataChunk>(out var stdt) || !stdt.ToDictionary().TryGetValue(guid, out var path)) {
+			return guid.ToString("B");
+		}
+
+		return path;
 	}
 
 	public string DumpGUIDs() {

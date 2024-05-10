@@ -202,13 +202,13 @@ public enum ChunkId : uint {
 	/// <summary> ParameterLayouts </summary>
 	PMLS = 0x534c4d50,
 
-	/// <summary> CodeInstrumentBody </summary>
+	/// <summary> ProgrammerInstrumentBody </summary>
 	PRIB = 0x42495250,
 
-	/// <summary> CodeInstruments </summary>
+	/// <summary> ProgrammerInstruments </summary>
 	PRIS = 0x53495250,
 
-	/// <summary> CodeInstrument </summary>
+	/// <summary> ProgrammerInstrument </summary>
 	PRIT = 0x54495250,
 
 	/// <summary> ParameterBody </summary>

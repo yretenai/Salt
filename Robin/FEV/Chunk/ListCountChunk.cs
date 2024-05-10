@@ -17,6 +17,4 @@ public sealed record ListCountChunk : BaseChunk, IAddressable {
 
 	public int Count { get; }
 	public static ReadOnlySpan<ChunkId> ListTypes => [ChunkId.LCNT];
-
-	public override string ToString() => $"{nameof(ListCountChunk)} {{ {Count} }}";
 }

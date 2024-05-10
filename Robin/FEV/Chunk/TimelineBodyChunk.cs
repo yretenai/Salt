@@ -4,7 +4,7 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk;
 
-public record TimelineBodyChunk : ModelChunk, IAddressable {
+public sealed record TimelineBodyChunk : ModelChunk, IAddressable {
 	public TimelineBodyChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(reader, atom, soundBank) {
 		if (soundBank.Format.FileVersion < 109) {
 			reader.Position += Unsafe.SizeOf<Guid>(); // ??

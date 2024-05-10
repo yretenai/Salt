@@ -22,5 +22,4 @@ public sealed record ProjectChunk : BaseChunk, IAddressable {
 
 	public List<BaseChunk> Chunks { get; } = [];
 	public static ReadOnlySpan<ChunkId> ListTypes => [ChunkId.PROJ];
-	public override string ToString() => $"{nameof(ProjectChunk)} {{ Count = {Chunks.Count} }}";
 }

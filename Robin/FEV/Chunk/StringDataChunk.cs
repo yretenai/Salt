@@ -5,7 +5,7 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk;
 
-public record StringDataChunk : BaseChunk, IAddressable {
+public sealed record StringDataChunk : BaseChunk, IAddressable {
 	public StringDataChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(atom, soundBank) {
 		ArgumentOutOfRangeException.ThrowIfNotEqual((int) Atom.Id, (int) ChunkId.STDT, nameof(Atom));
 
@@ -110,6 +110,4 @@ public record StringDataChunk : BaseChunk, IAddressable {
 
 		return ReverseDictionary.AsReadOnly();
 	}
-
-	public override string ToString() => $"{nameof(StringDataChunk)} {{ Count = {Guids.Length} }}";
 }

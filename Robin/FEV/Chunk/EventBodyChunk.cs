@@ -3,7 +3,7 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk;
 
-public record EventBodyChunk : ModelChunk, IAddressable {
+public sealed record EventBodyChunk : ModelChunk, IAddressable {
 	public EventBodyChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(reader, atom, soundBank) {
 		ArgumentOutOfRangeException.ThrowIfNotEqual((int) Atom.Id, (int) ChunkId.EVTB, nameof(Atom));
 
@@ -81,14 +81,13 @@ public record EventBodyChunk : ModelChunk, IAddressable {
 			return;
 		}
 
-		EventTriggeredInstruments = reader.ReadElementArray<Guid>().ToArray();
+		EventTriggeredInstruments = reader.ReadElementArray<GuidRef<InstrumentChunk>>().ToArray();
 
 		if (soundBank.Format.FileVersion < 137) {
 			return;
 		}
 
-		MinimumDistance = reader.Read<float>();
-		MaximumDistance = reader.Read<float>();
+		Distance = reader.Read<Range<float>>();
 	}
 
 	public Guid SnapshotId { get; }
@@ -102,13 +101,12 @@ public record EventBodyChunk : ModelChunk, IAddressable {
 	public int PolyphonyLimitBehavior { get; }
 	public float TriggerCooldown { get; }
 	public uint Flags { get; }
-	public float MinimumDistance { get; }
-	public float MaximumDistance { get; }
+	public Range<float> Distance { get; }
 	public Memory<Guid> ParameterLayouts { get; }
 	public Dictionary<string, float> UserFloatProperties { get; } = [];
 	public Dictionary<string, string> UserStringProperties { get; } = [];
 	public Memory<Guid> NonMasterTracks { get; }
 	public Memory<ulong> ParameterIds { get; }
-	public Memory<Guid> EventTriggeredInstruments { get; }
+	public Memory<GuidRef<InstrumentChunk>> EventTriggeredInstruments { get; }
 	public static ReadOnlySpan<ChunkId> ListTypes => [ChunkId.EVTS, ChunkId.EVNT, ChunkId.EVTB];
 }

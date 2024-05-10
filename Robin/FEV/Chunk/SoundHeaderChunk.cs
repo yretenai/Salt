@@ -3,7 +3,7 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk;
 
-public record SoundHeaderChunk : BaseChunk, IAddressable {
+public sealed record SoundHeaderChunk : BaseChunk, IAddressable {
 	public SoundHeaderChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(atom, soundBank) {
 		ArgumentOutOfRangeException.ThrowIfNotEqual((int) Atom.Id, (int) ChunkId.SNDH, nameof(Atom));
 
@@ -16,6 +16,4 @@ public record SoundHeaderChunk : BaseChunk, IAddressable {
 
 	public Memory<PackedKeyValue<int, int>> OffsetTable { get; }
 	public static ReadOnlySpan<ChunkId> ListTypes => [ChunkId.SNDH];
-
-	public override string ToString() => $"{nameof(SoundHeaderChunk)} {{ Count = {OffsetTable.Length} }}";
 }

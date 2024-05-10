@@ -3,7 +3,7 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk;
 
-public record BankInfoChunk : ModelChunk, IAddressable {
+public sealed record BankInfoChunk : ModelChunk, IAddressable {
 	public BankInfoChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(reader, atom, soundBank) {
 		ArgumentOutOfRangeException.ThrowIfNotEqual((int) Atom.Id, (int) ChunkId.BNKI, nameof(Atom));
 

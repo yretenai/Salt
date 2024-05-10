@@ -3,7 +3,7 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk;
 
-public record LooseWaveformResourceChunk : ModelChunk, IAddressable {
+public sealed record LooseWaveformResourceChunk : ModelChunk, IAddressable {
 	public LooseWaveformResourceChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(reader, atom, soundBank) {
 		ArgumentOutOfRangeException.ThrowIfNotEqual((int) Atom.Id, (int) ChunkId.LWAV, nameof(Atom));
 

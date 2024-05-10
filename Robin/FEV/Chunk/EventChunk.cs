@@ -3,7 +3,7 @@ using Robin.FEV.Models;
 
 namespace Robin.FEV.Chunk;
 
-public record EventChunk : BaseChunk, IHasId, IAddressable, IPropertyOwner {
+public sealed record EventChunk : PropertyOwnerChunk, IHasId, IAddressable {
 	public EventChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(atom, soundBank) {
 		if (soundBank.Format.FileVersion < 49) {
 			EventBody = new EventBodyChunk(reader, atom with {
@@ -15,14 +15,12 @@ public record EventChunk : BaseChunk, IHasId, IAddressable, IPropertyOwner {
 			}
 
 			EventBody = eventBody;
-			Properties = ReadChunk(reader, soundBank);
+
+			ProcessPropertyChunk(reader);
 		}
 	}
 
 	public EventBodyChunk EventBody { get; }
-	public static ReadOnlySpan<ChunkId> ListTypes => EventBodyChunk.ListTypes;
-	public Guid Id => EventBody.Id;
-	public BaseChunk? Properties { get; } // PRPS
-
-	public override string ToString() => $"{nameof(EventChunk)} {{ Body = {EventBody}, Properties = {Properties} }}";
+	public new static ReadOnlySpan<ChunkId> ListTypes => EventBodyChunk.ListTypes;
+	public override Guid Id => EventBody.Id;
 }

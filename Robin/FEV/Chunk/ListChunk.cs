@@ -44,8 +44,6 @@ public sealed record ListChunk : BaseChunk {
 	                                            ((Chunks.Count == 0 || Chunks.All(x => x.IsFunctionallyEmpty)) &&
 	                                             (Body == null || Body.IsFunctionallyEmpty));
 
-	public override string ToString() => $"{nameof(ListChunk)} {{ Type = {ListId:G}, Count = {Chunks.Count}, First = {Body ?? Chunks.FirstOrDefault()} }}";
-
 	public bool TryGetChunk<T>(Guid id, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IHasId {
 		chunk = Chunks.OfType<T>().FirstOrDefault(x => x.Id == id);
 		return chunk != null;
