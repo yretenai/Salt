@@ -11,11 +11,14 @@ public record PlaylistChunk : BaseChunk, IAddressable {
 		SelectionMode = reader.Read<PlaylistSelectionMode>();
 		Entries = reader.ReadElementArray<PlaylistEntry>().ToArray();
 
-		if (soundBank.Format.FileVersion < 104 && reader.Read<bool>()) {
-			PlayMode = PlaylistPlayMode.GlobalSequential;
+		if (soundBank.Format.FileVersion is > 100 and < 104) {
+			IsGlobalSequential = reader.Read<bool>();
+		} else {
+			IsGlobalSequential = PlayMode == PlaylistPlayMode.GlobalSequential;
 		}
 	}
 
+	public bool IsGlobalSequential { get; }
 	public PlaylistPlayMode PlayMode { get; }
 	public PlaylistSelectionMode SelectionMode { get; }
 
