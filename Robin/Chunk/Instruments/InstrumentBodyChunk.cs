@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Robin.Chunk.Abstract;
 using Robin.Models;
 
@@ -10,7 +11,7 @@ public sealed record InstrumentBodyChunk : BaseChunk {
 		Volume = reader.Read<float>();
 		Pitch = reader.Read<float>();
 		LoopCount = reader.Read<int>();
-		Cutoff = reader.Read<bool>();
+		Cutoff = reader.Read<int>();
 		Offset3DDistance = reader.Read<float>();
 		TriggerChancePercent = reader.Read<float>();
 		TriggerDelay = reader.Read<Range<float>>();
@@ -19,6 +20,11 @@ public sealed record InstrumentBodyChunk : BaseChunk {
 		AutoPitchReference = reader.Read<float>();
 		InitialSeekPosition = reader.Read<float>();
 		MaximumPolyphony = reader.Read<int>();
+		var size = reader.Read<ushort>();
+		if (size != Unsafe.SizeOf<Routable>()) {
+			return;
+		}
+
 		Routable = reader.Read<Routable>();
 
 		if (soundBank.Format.FileVersion < 53) {
@@ -44,6 +50,13 @@ public sealed record InstrumentBodyChunk : BaseChunk {
 		}
 
 		AutoPitchAtMinimum = reader.Read<float>();
+
+		if (soundBank.Format.FileVersion < 130) {
+			return;
+		}
+
+		var subChunkSize = reader.Read<int>();
+		reader.Position += subChunkSize; // todo: is variadic type! 0x11 = TimelineNamedMarker, the rest = ???
 	}
 
 	public GuidRef<TimelineChunk> Timeline { get; }
@@ -61,7 +74,7 @@ public sealed record InstrumentBodyChunk : BaseChunk {
 	public float AutoPitchAtMinimum { get; }
 	public int LoopCount { get; }
 	public int MaximumPolyphony { get; }
-	public bool Cutoff { get; }
+	public int Cutoff { get; }
 	public PolyphonyLimitBehavior PolyphonyLimitBehavior { get; }
 	public int LeftTrimOffset { get; }
 }

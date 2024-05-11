@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text;
 using DragonLib;
 using Robin.Chunk;
@@ -82,6 +83,7 @@ public sealed class FEVSoundBank {
 		return true;
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
 	private bool InnerTryGetChunk<T>(ChunkId chunkId, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk {
 		foreach (var potentialChunk in Chunks) {
 			if (potentialChunk.IsFunctionallyEmpty) {
@@ -104,8 +106,20 @@ public sealed class FEVSoundBank {
 		return false;
 	}
 
-	public bool TryGetChunk<T>([MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IAddressable => TryGetChunk(T.ListTypes, out chunk);
+	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
+	public bool TryGetChunk<T>([MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IAddressable {
+		foreach (var chunkId in T.ListTypes) {
+			if (TryGetChunk<T>(chunkId, out var potentialChunk)) {
+				chunk = potentialChunk;
+				return true;
+			}
+		}
 
+		chunk = null;
+		return false;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
 	public bool TryGetChunk<T>(Guid id, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IHasId, IAddressable {
 		if (TryGetChunks<T>(out var chunks)) {
 			chunk = chunks.FirstOrDefault(x => x.Id == id);
@@ -116,39 +130,45 @@ public sealed class FEVSoundBank {
 		return false;
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
 	public bool TryGetChunk<T>(GuidRef<T> id, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk, IHasId, IAddressable => TryGetChunk(id.Id, out chunk);
 
-	public bool TryGetChunks<T>([MaybeNullWhen(false)] out List<T> chunks) where T : BaseChunk, IAddressable {
-		if (TryGetChunk<ListChunk>(T.ListTypes, out var listChunk)) {
-			chunks = listChunk.Chunks.OfType<T>().ToList();
+	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
+	public bool TryGetChunks<T>(out List<T> chunks) where T : BaseChunk, IAddressable {
+		chunks = [];
+		foreach (var chunkId in T.ListTypes) {
+			if (TryGetChunk<ListChunk>(chunkId, out var listChunk)) {
+				chunks.AddRange(listChunk.Chunks.OfType<T>().ToList());
+			}
+
+			if (TryGetChunk<T>(out var chunk)) {
+				chunks.Add(chunk);
+			}
+		}
+
+		if (chunks.Count > 0) {
 			return true;
 		}
 
-		if (TryGetChunk<T>(out var chunk)) {
-			chunks = [chunk];
-			return true;
-		}
-
-		chunks = null;
+		chunks = [];
 		return false;
 	}
 
-	private bool TryGetChunk<T>(ReadOnlySpan<ChunkId> listTypes, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk {
-		foreach (var chunkId in listTypes) {
-			if (InnerTryGetChunk(chunkId, out chunk)) {
-				return true;
-			}
-
-			if (Assets != null && Assets.InnerTryGetChunk(chunkId, out chunk)) {
-				return true;
-			}
-
-			if (Strings != null && Strings.InnerTryGetChunk(chunkId, out chunk)) {
-				return true;
-			}
+	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
+	private bool TryGetChunk<T>(ChunkId chunkId, [MaybeNullWhen(false)] out T chunk) where T : BaseChunk {
+		if (InnerTryGetChunk(chunkId, out chunk)) {
+			return true;
 		}
 
-		if (Master != null && Master.TryGetChunk(listTypes, out chunk)) {
+		if (Assets != null && Assets.InnerTryGetChunk(chunkId, out chunk)) {
+			return true;
+		}
+
+		if (Strings != null && Strings.InnerTryGetChunk(chunkId, out chunk)) {
+			return true;
+		}
+
+		if (Master != null && Master.TryGetChunk(chunkId, out chunk)) {
 			return true;
 		}
 
@@ -171,6 +191,19 @@ public sealed class FEVSoundBank {
 		}
 
 		return path;
+	}
+
+	public string GetPathString(Guid guid) {
+		if (!TryGetChunk<StringDataChunk>(out var stdt) || !stdt.ToDictionary().TryGetValue(guid, out var path)) {
+			return guid.ToString("D");
+		}
+
+		var colonIndex = path.IndexOf(':', StringComparison.Ordinal);
+		if (colonIndex > -1) {
+			path = path[(colonIndex + 2)..];
+		}
+
+		return path.SanitizeTraversal();
 	}
 
 	public string DumpGUIDs() {

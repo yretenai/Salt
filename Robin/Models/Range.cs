@@ -11,4 +11,6 @@ public record struct Range<T> where T : struct {
 		minimum = Minimum;
 		maximum = Maximum;
 	}
+
+	public override string ToString() => $"{Minimum}-{Maximum}";
 }
