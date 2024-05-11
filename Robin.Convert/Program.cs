@@ -6,7 +6,7 @@ namespace Robin.Convert;
 internal class Program {
 	private static void Main(string[] args) {
 		if (args.Length < 2) {
-			Console.Error.WriteLine("Usage: Robin.Convert path/to/Master.bank path/to/soundbank.bank [path/to/output]");
+			Console.Error.WriteLine("Usage: Robin.Convert path/to/Master.bank path/to/soundbank.bank [path/to/output [filters...]]");
 			return;
 		}
 
@@ -36,17 +36,24 @@ internal class Program {
 				continue;
 			}
 
-			EnumerateEvents(events, args.ElementAtOrDefault(2) ?? string.Empty, args.Length < 3);
+			EnumerateEvents(events, args.ElementAtOrDefault(2) ?? string.Empty, args.Length < 3, args.Skip(3).ToList());
 		}
 	}
 
-	private static void EnumerateEvents(List<EventChunk> chunks, string output, bool dry) {
+	private static void EnumerateEvents(List<EventChunk> chunks, string output, bool dry, List<string> filters) {
 		foreach (var eventChunk in chunks) {
+			var name = eventChunk.Bank.GetGuidString(eventChunk.Id);
+			if (filters.Count > 0) {
+				if (!filters.Any(x => name.Contains(x, StringComparison.Ordinal))) {
+					continue;
+				}
+			}
+
 			if (!eventChunk.EventBody.Timeline.TryGetChunk(eventChunk.Bank, out var timelineChunk)) {
 				continue;
 			}
 
-			Console.WriteLine(eventChunk.Bank.GetGuidString(eventChunk.Id));
+			Console.WriteLine(name);
 
 			var triggerBoxes = new HashSet<(uint start, uint length, InstrumentChunk instrumentChunk)>();
 			foreach (var triggerBox in timelineChunk.TimelineBody.TriggerBoxes.Span) {
