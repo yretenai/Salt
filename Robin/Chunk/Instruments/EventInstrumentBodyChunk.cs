@@ -5,7 +5,10 @@ namespace Robin.Chunk.Instruments;
 
 public sealed record EventInstrumentBodyChunk : ModelChunk, IAddressable {
 	public EventInstrumentBodyChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(reader, atom, soundBank) {
-		ArgumentOutOfRangeException.ThrowIfNotEqual((int) Atom.Id, (int) ChunkId.EVTB, nameof(Atom));
+		ArgumentOutOfRangeException.ThrowIfNotEqual((int) Atom.Id, (int) ChunkId.EVIB, nameof(Atom));
+		Event = reader.Read<GuidRef<EventChunk>>();
+		SnapshotIntensity = reader.Read<float>();
+		ParameterStubs = reader.ReadElementArray<EventParameterStub>().ToArray();
 	}
 
 	public GuidRef<EventChunk> Event { get; }

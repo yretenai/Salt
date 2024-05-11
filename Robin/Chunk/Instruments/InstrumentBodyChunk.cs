@@ -25,7 +25,7 @@ public sealed record InstrumentBodyChunk : BaseChunk {
 			return;
 		}
 
-		PolyphonyLimitBehavior = reader.Read<SoundGroupBehavior>();
+		PolyphonyLimitBehavior = reader.Read<PolyphonyLimitBehavior>();
 
 		if (soundBank.Format.FileVersion < 71) {
 			return;
@@ -62,6 +62,6 @@ public sealed record InstrumentBodyChunk : BaseChunk {
 	public int LoopCount { get; }
 	public int MaximumPolyphony { get; }
 	public bool Cutoff { get; }
-	public SoundGroupBehavior PolyphonyLimitBehavior { get; }
+	public PolyphonyLimitBehavior PolyphonyLimitBehavior { get; }
 	public int LeftTrimOffset { get; }
 }

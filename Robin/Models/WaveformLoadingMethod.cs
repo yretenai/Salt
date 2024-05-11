@@ -1,8 +1,8 @@
 namespace Robin.Models;
 
 public enum WaveformLoadingMethod {
-	LoadInMemory,
-	DecompressInMemory,
-	StreamFromDisk,
-	Undefined,
+	LoadInMemory = 0,
+	DecompressInMemory = 1,
+	StreamFromDisk = 2,
+	Undefined = 3,
 }
