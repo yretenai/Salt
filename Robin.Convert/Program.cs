@@ -40,7 +40,7 @@ internal class Program {
 		}
 	}
 
-	private static void EnumerateEvents(List<EventChunk> chunks, string? output, bool dry) {
+	private static void EnumerateEvents(List<EventChunk> chunks, string output, bool dry) {
 		foreach (var eventChunk in chunks) {
 			if (!eventChunk.EventBody.Timeline.TryGetChunk(eventChunk.Bank, out var timelineChunk)) {
 				continue;
