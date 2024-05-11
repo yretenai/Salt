@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Robin.Chunk.Instruments;
 using Robin.Models;
 
 namespace Robin.Chunk.Abstract;
@@ -44,8 +45,12 @@ public abstract record BaseChunk(RIFFAtom Atom, FEVSoundBank Bank) {
 			}
 			case ChunkId.BUS: break;
 			case ChunkId.BUSS: throw new UnreachableException();
-			case ChunkId.CMDB: break;
-			case ChunkId.CMDI: break;
+			case ChunkId.CMDI: {
+				return new CommandInstrumentChunk(reader, atom, soundBank);
+			}
+			case ChunkId.CMDB: {
+				return new CommandInstrumentBodyChunk(reader, atom, soundBank);
+			}
 			case ChunkId.CMDS: throw new UnreachableException();
 			case ChunkId.CRVS: throw new UnreachableException();
 			case ChunkId.CTRL: break;
@@ -53,13 +58,21 @@ public abstract record BaseChunk(RIFFAtom Atom, FEVSoundBank Bank) {
 			case ChunkId.CTRS: throw new UnreachableException();
 			case ChunkId.CURV: break;
 			case ChunkId.DEL: break;
-			case ChunkId.EFIB: break;
+			case ChunkId.EFIB: {
+				return new EffectInstrumentBodyChunk(reader, atom, soundBank);
+			}
 			case ChunkId.EFIS: throw new UnreachableException();
-			case ChunkId.EFIT: break;
+			case ChunkId.EFIT: {
+				return new EffectInstrumentChunk(reader, atom, soundBank);
+			}
 			case ChunkId.EFX: throw new UnreachableException();
-			case ChunkId.EVIB: break;
+			case ChunkId.EVIT: {
+				return new EventInstrumentChunk(reader, atom, soundBank);
+			}
 			case ChunkId.EVIS: throw new UnreachableException();
-			case ChunkId.EVIT: break;
+			case ChunkId.EVIB: {
+				return new EventInstrumentBodyChunk(reader, atom, soundBank);
+			}
 			case ChunkId.EVNT: {
 				return new EventChunk(reader, atom, soundBank);
 			}
@@ -73,7 +86,6 @@ public abstract record BaseChunk(RIFFAtom Atom, FEVSoundBank Bank) {
 			case ChunkId.GBSB: break;
 			case ChunkId.GBSS: throw new UnreachableException();
 			case ChunkId.GBUS: break;
-			case ChunkId.GRIT: break;
 			case ChunkId.HASH: {
 				return new HashChunk(reader, atom, soundBank);
 			}
@@ -98,9 +110,13 @@ public abstract record BaseChunk(RIFFAtom Atom, FEVSoundBank Bank) {
 			case ChunkId.MODS: throw new UnreachableException();
 			case ChunkId.MODU: break;
 			case ChunkId.MPGS: throw new UnreachableException();
-			case ChunkId.MUIB: break;
+			case ChunkId.MUIT: {
+				return new MultiInstrumentChunk(reader, atom, soundBank);
+			}
 			case ChunkId.MUIS: throw new UnreachableException();
-			case ChunkId.MUIT: break;
+			case ChunkId.MUIB: {
+				return new MultiInstrumentBodyChunk(reader, atom, soundBank);
+			}
 			case ChunkId.MUTE: break;
 			case ChunkId.MXST: break;
 			case ChunkId.PARM: break;
@@ -110,15 +126,24 @@ public abstract record BaseChunk(RIFFAtom Atom, FEVSoundBank Bank) {
 			case ChunkId.PLAT: {
 				return new PlatformChunk(reader, atom, soundBank);
 			}
-			case ChunkId.PLIT: break;
-			case ChunkId.PLST: break;
+			case ChunkId.PLIT: {
+				return new PlaylistInstrumentBodyChunk(reader, atom, soundBank);
+			}
+			case ChunkId.PLST: {
+				return new PlaylistChunk(reader, atom, soundBank);
+			}
 			case ChunkId.PMEF: break;
 			case ChunkId.PMLB: break;
 			case ChunkId.PMLO: break;
 			case ChunkId.PMLS: throw new UnreachableException();
-			case ChunkId.PRIB: break;
+			case ChunkId.PRIT: {
+				return new ProgrammerInstrumentChunk(reader, atom, soundBank);
+			}
 			case ChunkId.PRIS: throw new UnreachableException();
-			case ChunkId.PRIT: break;
+			case ChunkId.PRIB: {
+				return new ProgrammerInstrumentBodyChunk(reader, atom, soundBank);
+			}
+
 			case ChunkId.PRMB: break;
 			case ChunkId.PRMS: throw new UnreachableException();
 			case ChunkId.PROJ: {
@@ -151,11 +176,20 @@ public abstract record BaseChunk(RIFFAtom Atom, FEVSoundBank Bank) {
 				return new SoundHeaderChunk(reader, atom, soundBank);
 			}
 			case ChunkId.SNLS: throw new UnreachableException();
-			case ChunkId.SNLI: break;
-			case ChunkId.SNLB: break;
-			case ChunkId.SPIB: break;
+			case ChunkId.SNLI: {
+				return new SilenceInstrumentChunk(reader, atom, soundBank);
+			}
+			case ChunkId.SNLB: {
+				return new SilenceInstrumentBodyChunk(reader, atom, soundBank);
+			}
+			case ChunkId.SPIB: {
+				return new SpawningInstrumentBodyChunk(reader, atom, soundBank);
+			}
 			case ChunkId.SPIS: throw new UnreachableException();
-			case ChunkId.SPIT: break;
+			case ChunkId.SPIT: {
+				return new SpawningInstrumentChunk(reader, atom, soundBank);
+			}
+
 			case ChunkId.STBL: break;
 			case ChunkId.STDT: {
 				return new StringDataChunk(reader, atom, soundBank);

@@ -97,9 +97,6 @@ public enum ChunkId : uint {
 	/// <summary> GroupBus </summary>
 	GBUS = 0x53554247,
 
-	/// <summary> GranularInstrument </summary>
-	GRIT = 0x54495247,
-
 	/// <summary> HashData </summary>
 	HASH = 0x48534148,
 

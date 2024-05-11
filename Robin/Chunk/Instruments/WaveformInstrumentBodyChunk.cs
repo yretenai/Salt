@@ -1,7 +1,7 @@
 using Robin.Chunk.Abstract;
 using Robin.Models;
 
-namespace Robin.Chunk;
+namespace Robin.Chunk.Instruments;
 
 public sealed record WaveformInstrumentBodyChunk : ModelChunk, IAddressable {
 	public WaveformInstrumentBodyChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(reader, atom, soundBank) {

@@ -18,7 +18,6 @@ public abstract record PropertyOwnerChunk(RIFFAtom Atom, FEVSoundBank Bank) : Ba
 		ChunkId.EVIT, ChunkId.EVIS, ChunkId.EVIB,
 		ChunkId.PLIT, ChunkId.PLIT,
 		ChunkId.WAIT, ChunkId.WAIS, ChunkId.WAIB,
-		ChunkId.GRIT,
 		ChunkId.MUIT, ChunkId.MUIS, ChunkId.MUIB,
 		ChunkId.CMDI, ChunkId.CMDS, ChunkId.CMDB,
 		ChunkId.EFIT, ChunkId.EFIS, ChunkId.EFIB,

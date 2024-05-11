@@ -1,7 +1,7 @@
 using Robin.Chunk.Abstract;
 using Robin.Models;
 
-namespace Robin.Chunk;
+namespace Robin.Chunk.Instruments;
 
 public sealed record InstrumentBodyChunk : BaseChunk {
 	public InstrumentBodyChunk(FEVReader reader, RIFFAtom atom, FEVSoundBank soundBank) : base(atom, soundBank) {
@@ -25,7 +25,7 @@ public sealed record InstrumentBodyChunk : BaseChunk {
 			return;
 		}
 
-		PolyphonyLimitBehavior = reader.Read<int>();
+		PolyphonyLimitBehavior = reader.Read<SoundGroupBehavior>();
 
 		if (soundBank.Format.FileVersion < 71) {
 			return;
@@ -62,6 +62,6 @@ public sealed record InstrumentBodyChunk : BaseChunk {
 	public int LoopCount { get; }
 	public int MaximumPolyphony { get; }
 	public bool Cutoff { get; }
-	public int PolyphonyLimitBehavior { get; }
+	public SoundGroupBehavior PolyphonyLimitBehavior { get; }
 	public int LeftTrimOffset { get; }
 }

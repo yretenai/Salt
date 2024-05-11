@@ -1,4 +1,5 @@
 using Robin.Chunk.Abstract;
+using Robin.Chunk.Instruments;
 using Robin.Models;
 
 namespace Robin.Chunk;
