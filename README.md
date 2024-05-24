@@ -1,3 +1,3 @@
 # Robin
 
-FMOD FEV and FSB Decoder
+FMOD FEV Decoder
